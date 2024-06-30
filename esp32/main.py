@@ -1,6 +1,7 @@
 from machine import Pin, Timer
 from neopixel import NeoPixel
 from simple import MQTTClient
+import json
 import time
 import network
 
@@ -11,7 +12,7 @@ status_info = {
   "attributes": {
     "color": "white",
     "brightness": 70,
-    "powerStatus": "on"
+    "powerStatus": "off"
   },
   "controls": {
     "turnOn": "Turn the bulb on",
@@ -42,16 +43,6 @@ BLACK = (0, 0, 0)
 
 COLORS = (RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET)
 
-def RGB_led_off():
-    for i in range(rgb_num):
-        rgb_led[i]=(0, 0, 0)
-        rgb_led.write()
-    status_info["attributes"]["powerStatus"]="off"
-    #报告一下状态
-    print("彩灯已关闭！")
-    client.publish(CONFIG['topic'], "poweroff")
-
-
 def RGB_led_on():
     for color in COLORS:
         for i in range(rgb_num):
@@ -59,15 +50,35 @@ def RGB_led_on():
             rgb_led.write()
             time.sleep_ms(100)
         time.sleep_ms(1000)
-    status_info["attributes"]["powerStatus"]="on"
-    #报告一下状态
-    print("彩灯已打开！")
-    client.publish(CONFIG['topic'], "poweron")
 
-led1 = Pin(5, Pin.OUT) # 定义LED控制对象
+def RGB_led_off():
+    for i in range(rgb_num):
+        rgb_led[i]=(0, 0, 0)
+        rgb_led.write()
+
+def RGB_led_status():
+    print(f"问灯的状态呢？--->  {topic}: {message_str}")
+    
+    powerstatus = status_info["attributes"]["powerStatus"]
+    brightness = status_info["attributes"]["brightness"]
+    color = status_info["attributes"]["color"]
+
+    # 正确创建字典，并使用字符串作为键
+    json_status = {
+        'status': 'RGB_light is online',
+        'Powerstatus': powerstatus,
+        'Brightness': brightness,
+        'Color': color
+    }
+
+    # 将字典转换为JSON字符串，如果需要的话
+    json_status_str = json.dumps(json_status)
+
+    return json_status_str
 
 # WIFI连接函数
 def wifi_connect(ssid, password, retries=5, delay=15):  # Wi-Fi连接函数
+    led1 = Pin(5, Pin.OUT) # 定义LED对象，指示wifi连接状态
     wlan = network.WLAN(network.STA_IF)  # STA模式
     wlan.active(True)  # 激活网络接口
     start_time = time.time()  # 记录开始连接的时间
@@ -92,11 +103,7 @@ def wifi_connect(ssid, password, retries=5, delay=15):  # Wi-Fi连接函数
     print("Network information:", wlan.ifconfig())
     return True
 
-
 #以下MQTT相关
-msg = ""
-msg_count=0
-
 # 配置信息
 CONFIG = {
     "ssid": "liujh",
@@ -111,45 +118,42 @@ CONFIG = {
 
 #设置 MQTT 回调函数,有信息时候执行
 def mqtt_callback(topic,msg):
-    # 将字节类型的消息解码为字符串
-    message_str = msg.decode('utf-8')
-    print("topic: {}".format(topic))
-    print("msg: {}".format(message_str))
+    message_str = msg.decode('utf-8')  # 将字节类型的消息解码为字符串
     print(f"Received message from topic {topic}: {message_str}")
-    
     if message_str == "on":  
         RGB_led_on()
-    
+        status_info["attributes"]["powerStatus"]="on"
+        #报告一下状态
+        print("彩灯已打开！")
+        client.publish(CONFIG['topic'], "poweron")
+        
     if message_str == "off":  
         RGB_led_off()
-
+        status_info["attributes"]["powerStatus"]="off"
+        #报告一下状态
+        print("彩灯已关闭！")
+        client.publish(CONFIG['topic'], "poweroff")
+        
     if message_str == "status":
-        print(f"问灯的状态呢？--->  {topic}: {message_str}")
-        powerstatus = status_info["attributes"]["powerStatus"]
-        brightness = status_info["attributes"]["brightness"]
-        color = status_info["attributes"]["color"]
+        json_status =  RGB_led_status()
+        print("彩灯状态已报告！")
+        client.publish(CONFIG['topic'], json_status)
 
-        # 正确创建字典，并使用字符串作为键
-        json_status = {
-            'status': 'RGB_light is online',
-            'Powerstatus': powerstatus,
-            'Brightness': brightness,
-            'Color': color
-        }
-
-        # 将字典转换为JSON字符串，如果需要的话
-        import json
-        json_status_str = json.dumps(json_status)
-
-        # 发布JSON字符串到MQTT主题
-        client.publish(CONFIG['topic'], json_status_str)
-    
-    if message_str == "bye":  # 现在msg是一个字符串，可以与字符串进行比较
-        print(f"再见消息来了啦  --->  {topic}: {message_str}")
-        client.publish(CONFIG['topic'], "no bye bye!")
+    # 设备注册
+    #def iot_client.create_device(self, device_info):
+    #    response = "ok. this is result of device_create"
+    #    return  response
+        
+    # 设备状态上报
+    #def iot_client.update_device_status(status_info):
+    #    response = "ok. update_device_status"
+    #    return  response
 
 # 主程序
 if __name__ == "__main__":
+    msg = ""
+    msg_count=0
+
     if wifi_connect(CONFIG['ssid'], CONFIG['password']):
         try:
             SERVER="120.26.241.36"
@@ -179,7 +183,7 @@ if __name__ == "__main__":
 
             client.check_msg()
             print(msg)
-            time.sleep(1)  # 休眠10秒
+            time.sleep(13)  
                 
 
                                     

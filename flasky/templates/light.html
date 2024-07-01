@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="5">
     <title>智能灯用户界面</title>
     <style>
         .switch {
@@ -91,123 +92,60 @@
             margin-bottom: 10px;
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.1.0/paho-mqtt.min.js"></script>
 </head>
 <body>
     <div class="container">
-
-
-        <h2>远程控制开关，点击可切换开关状态</h2>
-        <div 
-        <label class="switch">
-            <input type="checkbox" id="lightSwitch">
+        <h2>远程控制开关，点击可切换开关状态，现在的状态是{{ powerStatus }}</h2>
+        <label class="switch" for="lightSwitch">
+            <input type="checkbox" id="lightSwitch" {{ 'checked' if powerStatus == 'on' else '' }}>
             <span class="slider"></span>
         </label>
-        </div>
-        <br>
-        <img id="bulbImage" src="{{ url_for('static', filename='off.png') }}" alt="灯泡图片">  <!-- 在模板中引用静态文件 -->
-
-        <h1>MQTT客户端界面</h1>
-        <!-- 表单输入和按钮 -->
-        <div class="form-group">
-            <label for="broker">代理服务器地址：</label>
-            <input type="text" id="broker" placeholder="输入代理服务器地址" value="broker.hivemq.com">
-        </div>
-        <div class="form-group">
-            <label for="port">端口：</label>
-            <input type="number" id="port" value="8000">
-        </div>
-        <div class="form-group">
-            <label for="clientID">客户端ID：</label>
-            <input type="text" id="clientID" placeholder="输入客户端ID">
-        </div>
-        <div class="form-group">
-            <label for="topic">主题：</label>
-            <input type="text" id="topic" placeholder="输入主题">
-        </div>
-        <div class="form-group">
-            <label for="message">消息内容：</label>
-            <input type="text" id="message" placeholder="输入消息内容">
-        </div>
-        <button id="connect">连接</button>
-        <button id="disconnect">断开连接</button>
-        <button id="subscribe">订阅主题</button>
-        <button id="publish">发布消息</button>
-        <button id="fetchMessages">获取消息</button> <!-- 新增按钮 -->
-        <div id="statusMessage" style="color: grey;"></div> <!-- 提示信息显示区域 -->
-        <div id="messages"></div>
-    </div>
-    
-    <script>
-        var lightSwitch = document.getElementById('lightSwitch');
-        var bulbImage = document.getElementById('bulbImage');
-    
-        lightSwitch.addEventListener('change', function() {
-            if (this.checked) {
-                fetchMessages();   
-                
-                bulbImage.src = "{{ url_for('static', filename='on.png') }}"; // 灯泡亮的图片
-            } else {
-                fetchMessages();
-                bulbImage.src = "{{ url_for('static', filename='off.png') }}"; // 灯泡灭的图片
-            }
-        });
-
-        var client; // MQTT客户端实例
+        </br>
         
-        var statusMessageDiv = document.getElementById('statusMessage'); // 用于显示状态信息的元素
+        {% if powerStatus == 'on' %}
+        <img id="bulbImage" src="{{ url_for('static', filename='on.png') }}" alt="灯泡图片">
+        {% else %}
+        <img id="bulbImage" src="{{ url_for('static', filename='off.png') }}" alt="灯泡图片">
+        {% endif %}
 
-        // ... 现有JavaScript代码 ...
+        <script>
+            // 获取lightSwitch元素和bulbImage元素
+            var lightSwitch = document.getElementById('lightSwitch');
+            var bulbImage = document.getElementById('bulbImage');
+            
+            // 设置初始灯泡图片
+            var initialState = {{ powerStatus|tojson }};
+            bulbImage.src = initialState === 'on' ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
+            
+            // 为lightSwitch添加change事件监听器
+            lightSwitch.addEventListener('change', function() {
+                var isOn = this.checked;
+                bulbImage.src = isOn ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
+            });
+        </script>
 
-        // 绑定按钮事件
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById('connect').addEventListener('click', connect);
-            document.getElementById('disconnect').addEventListener('click', disconnect);
-            document.getElementById('subscribe').addEventListener('click', subscribe);
-            document.getElementById('publish').addEventListener('click', publish);
-            document.getElementById('fetchMessages').addEventListener('click', fetchMessages); // 新增事件监听
-        });
-
-        // MQTT相关函数
-        function connect() { /* ... */ }
-        function onConnect() { /* ... */ }
-        function onFailureConnect(message) { /* ... */ }
-        function disconnect() { /* ... */ }
-        function subscribe() { /* ... */ }
-        function publish() { /* ... */ }
-        function onMessageArrived(message) { /* ... */ }
-
-        // AJAX请求函数
-        function fetchMessages() {
-            var messagesDiv = document.getElementById('messages');
-            var url = 'http://120.26.241.36:5000/api/status'; //服务器端点URL
-
-            fetch(url)
-                .then(function(response) {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok ' + response.statusText);
-                    }
-                    return response.json();
-                })
-                .then(function(messages) {
-                    messagesDiv.innerHTML = '';
-                    messages.forEach(function(message) {
-                        var p = document.createElement('p');
-                        p.textContent = "收到消息: " + message.content + " 来自主题: " + message.topic;
-                        messagesDiv.appendChild(p);
-                    });
-                    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-                })
-                .catch(function(error) {
-                    console.error('There was a problem with the fetch operation:', error);
-                    var errorMessage = document.createElement('p');
-                    errorMessage.textContent = '获取消息失败: ' + error.message;
-                    errorMessage.style.color = 'red';
-                    messagesDiv.appendChild(errorMessage);
-                });
-        }
-
-        // ... 现有JavaScript代码的其余部分 ...
-    </script>
+        <!-- 灯的属性设置 -->
+        <form action="/ui/light" method="get">
+            <!-- Checkbox -->
+            <label for="agreeCheckbox">是否自动更新灯泡状态</label>
+            <input type="checkbox" id="agreeCheckbox" name="agree">
+            <br><br>
+            <!-- Select (Option) -->
+            <label for="selectOption">选择或设置灯泡颜色：</label>
+            <select id="selectOption" name="option">
+                <option value="option1">红 色</option>
+                <option value="option2">绿 色</option>
+                <option value="option3">蓝 色</option>
+                <!-- 根据需要添加更多选项 -->
+            </select>
+            <br><br>
+            <!-- Integer Input -->
+            <label for="integerInput">设置灯光亮度（范围1-255，变化幅度10）</label>
+            <input type="number" id="integerInput" name="integerInput" min="1" max="255" step="10">
+            <br><br>
+            <!-- Submit Button -->
+            <input type="submit" value="确定提交">
+        </form>
+    </div>
 </body>
 </html>

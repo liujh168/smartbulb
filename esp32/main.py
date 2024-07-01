@@ -57,8 +57,6 @@ def RGB_led_off():
         rgb_led.write()
 
 def RGB_led_status():
-    print(f"问灯的状态呢？--->  {topic}: {message_str}")
-    
     powerstatus = status_info["attributes"]["powerStatus"]
     brightness = status_info["attributes"]["brightness"]
     color = status_info["attributes"]["color"]
@@ -121,10 +119,10 @@ def mqtt_callback(topic,msg):
     message_str = msg.decode('utf-8')  # 将字节类型的消息解码为字符串
     print(f"Received message from topic {topic}: {message_str}")
     if message_str == "on":  
+        print("以下打开灯光！")
         RGB_led_on()
         status_info["attributes"]["powerStatus"]="on"
         #报告一下状态
-        print("彩灯已打开！")
         client.publish(CONFIG['topic'], "poweron")
         
     if message_str == "off":  
@@ -135,8 +133,10 @@ def mqtt_callback(topic,msg):
         client.publish(CONFIG['topic'], "poweroff")
         
     if message_str == "status":
+        print("问灯的状态呢？")
         json_status =  RGB_led_status()
-        print("彩灯状态已报告！")
+        print(json_status)
+        client.publish(CONFIG['topic'], "RGB light status:........... ")
         client.publish(CONFIG['topic'], json_status)
 
     # 设备注册
@@ -183,9 +183,10 @@ if __name__ == "__main__":
 
             client.check_msg()
             print(msg)
-            time.sleep(13)  
+            time.sleep(3)  
                 
 
                                     
                 
+
 

@@ -1,5 +1,7 @@
 tools
 *.crt
+# vscode workspace
+workspace.code*  
 
 *.py[cod]
 

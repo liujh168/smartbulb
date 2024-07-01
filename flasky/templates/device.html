@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <style>
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+    }
+    .switch input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+    input:checked + .slider {
+        background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+        transform: translateX(26px);
+    }
+
+
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .container {
+        width: 90%;
+        max-width: 600px;
+        margin-top: 20px;
+    }
+    .form-group {
+        margin-bottom: 15px;
+    }
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    input[type="text"],
+    input[type="number"] {
+        width: calc(100% - 22px);
+        padding: 8px;
+        margin-bottom: 5px;
+    }
+    button {
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+    #messages {
+        margin-top: 20px;
+        width: 100%;
+        height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+        padding: 10px;
+        box-sizing: border-box;
+        background-color: #f9f9f9;
+    }
+    #statusMessage {
+        margin-bottom: 10px;
+    }
+</style>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Bulb Control</title>
+<script>
+// 初始设备状态
+var device = {
+  "productKey": "a1B2c3D4",
+  "deviceName": "SmartBulb001",
+  "attributes": {
+    "color": "white",
+    "brightness": 70,
+    "powerStatus": "on"
+  },
+  "controls": {
+    "turnOn": "Turn the bulb on",
+    "turnOff": "Turn the bulb off",
+    "setColor": "Set the color of the bulb"
+  },
+  "configurations": {
+    "wifi": "SSID_123",
+    "bluetooth": "ON"
+  }
+};
+
+// 函数来更新设备状态并显示
+function updateDeviceStatus() {
+  var powerCheckbox = document.getElementById('powerStatus');
+  var colorInput = document.getElementById('color');
+  var brightnessInput = document.getElementById('brightness');
+  
+  // 更新设备状态
+  device.attributes.powerStatus = powerCheckbox.checked ? 'on' : 'off';
+  device.attributes.color = colorInput.value;
+  device.attributes.brightness = parseInt(brightnessInput.value);
+  
+  // 显示状态变化
+  document.getElementById('powerStatusDisplay').textContent = device.attributes.powerStatus;
+  document.getElementById('colorDisplay').textContent = device.attributes.color;
+  document.getElementById('brightnessDisplay').textContent = device.attributes.brightness + '%';
+}
+
+// 函数来切换灯泡状态
+function togglePower() {
+  var powerStatus = device.attributes.powerStatus === 'on' ? 'off' : 'on';
+  var imgElement = document.getElementById('bulbImage');
+  
+  if (powerStatus === 'on') {
+    imgElement.src = 'on.png'; // 灯泡亮的图片
+  } else {
+    imgElement.src = 'off.png'; // 灯泡灭的图片
+  }
+  
+  document.getElementById('powerStatus').checked = (powerStatus === 'on');
+  updateDeviceStatus();
+}
+
+// 函数来切换灯泡状态
+function togglePower_another() {
+  var powerStatus = device.attributes.powerStatus === 'on' ? 'off' : 'on';
+  document.getElementById('powerStatus').checked = (powerStatus === 'on');
+  updateDeviceStatus();
+}
+
+// 函数来改变灯泡颜色
+function changeColor() {
+  var color = document.getElementById('color').value;
+  document.getElementById('colorDisplay').textContent = color;
+  updateDeviceStatus();
+}
+
+// 函数来更新亮度
+function updateBrightness() {
+  var brightness = parseInt(document.getElementById('brightness').value);
+  document.getElementById('brightnessDisplay').textContent = brightness + '%';
+  updateDeviceStatus();
+}
+</script>
+</head>
+<body>
+
+<h1>Smart Bulb Control Panel</h1>
+
+<div>
+  <label for="deviceName">Device Name:</label>
+  <input type="text" id="deviceName" value="SmartBulb001" readonly>
+</div>
+
+<div>
+  <label for="productKey">Product Key:</label>
+  <input type="text" id="productKey" value="a1B2c3D4" readonly>
+</div>
+
+<div>
+  <label for="wifi">WiFi:</label>
+  <input type="text" id="wifi" value="SSID_123" readonly>
+</div>
+
+<div>
+  <label for="bluetooth">Bluetooth:</label>
+  <input type="text" id="bluetooth" value="ON" readonly>
+</div>
+
+<h2>Controls</h2>
+<div>
+  <label for="powerStatus">Power Status:</label>
+  <input type="checkbox" id="powerStatus" onchange="togglePower()" checked>
+  <span id="powerStatusDisplay">on</span>
+  
+  <label class="switch">
+    <input type="checkbox" id="lightSwitch">
+    <span class="slider"></span>
+  </label>
+</div>
+
+<div>
+  <label for="color">Color:</label>
+  <input type="color" id="color" value="#FFFFFF" onchange="changeColor()">
+  <span id="colorDisplay">white</span>
+</div>
+
+<div>
+  <label for="brightness">Brightness:</label>
+  <input type="range" id="brightness" min="0" max="100" value="70" onchange="updateBrightness()">
+  <span id="brightnessDisplay">70%</span>
+</div>
+<div>
+    <h2>Image Feedback</h2>
+    <div>
+      <img id="bulbImage" src="off.png" alt="Bulb Status">
+    </div>    
+</div>
+
+</body>
+</html>

@@ -73,7 +73,10 @@ ORANGE = (255, 165, 0)
 YELLOW = (255, 150, 0)
 INDIGO = (75, 0, 130)
 VIOLET = (138, 43, 226)
-COLORS = (RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET)
+#COLORS = (RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET)
+COLORS = (RED, GREEN, BLUE)
+
+led1 = Pin(5, Pin.OUT) # 定义LED对象，指示wifi连接状态
 
 # rgb_num 定义RGB控制对象
 # pin 控制引脚为16，RGB灯串联5个
@@ -90,7 +93,8 @@ class SmartBulb:
         self.pin = pin
         self.rgb_led = NeoPixel(Pin(pin,Pin.OUT),self.rgb_num)  
 
-    def turn_on(self):    
+    def turn_on(self):
+        led1.value(1)
         for color in COLORS:
             for i in range(self.rgb_num):
                 self.rgb_led[i]=(color[0], color[1], color[2])
@@ -98,18 +102,19 @@ class SmartBulb:
                 time.sleep_ms(100)
             time.sleep_ms(1000)
         self.power_status = 'on'
-        self.set_color(self.color)
-        self.set_brightness(self.brightness)
-        print(f"The bulb is now {self.color} and {self.brightness}% bright.")
+        #self.set_color(self.color)
+        #self.set_brightness(self.brightness)
+        #print(f"The bulb is now {self.color} and {self.brightness}% bright.")
 
-    def turn_off(self):        
+    def turn_off(self):
+        led1.value(0)
         for i in range(self.rgb_num):
             self.rgb_led[i]=(0, 0, 0)
             self.rgb_led.write()
         self.power_status = 'off'
-        self.set_color(self.color)
-        self.set_brightness(self.brightness)
-        print("The bulb is now off.")
+        #self.set_color(self.color)
+        #self.set_brightness(self.brightness)
+        #print("The bulb is now off.")
 
     def set_color(self, color):
         if color in ['white', 'red', 'green', 'blue']:
@@ -195,39 +200,16 @@ if __name__ == "__main__":
     smart_bulb = SmartBulb(product_key="a1B2c3D4", device_name="SmartBulb001")
     print(smart_bulb)
     while True:
-        smart_bulb.turn_on()
-        smart_bulb.set_brightness(100)
-        print("RGB_LED 开灯了！")
-        time.sleep(3000)
-        smart_bulb.set_color("red")
-        print("红色！")
-        time.sleep(3000)
-        smart_bulb.set_color("green")
-        print("绿色！")
-        time.sleep(3000)
-        smart_bulb.set_color("blue")
-        print("蓝色")
-        time.sleep(3000)
-        smart_bulb.set_color("yellow")   #这个颜色不会设置的
-        smart_bulb.set_color("white")
-        print("白色！")
-        time.sleep(3000)
-        print("以下逐渐变亮.......")
-        for i in range(99):
-            if (i+1)%9 == 0 :
-                smart_bulb.set_brightness(i)
-                time.sleep(300)
-
-        smart_bulb.set_wifi("SSID_123")
-        smart_bulb.set_bluetooth(True)
+        print("以下获取灯的状态！ json串表示")
         status = smart_bulb.get_status()  
         print(status)
         time.sleep(3000)
-
         print("关灯！")
         smart_bulb.turn_off()
-        status = smart_bulb.get_status()  
-        print(status)
-        time.sleep(3000)
+        print(profile["attributes"])
+        print("RGB_LED 开灯了！")
+        smart_bulb.turn_on()
+        print(profile["attributes"])
+        time.sleep(5000)
 
 

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="8">
+    <!-- <meta http-equiv="refresh" content="8"> -->
     <title>智能灯用户界面</title>
     <style>
         .switch {
@@ -109,56 +109,103 @@
 
 <body>
     <div class="container">
-        <h2>远程控制开关，点击可切换开关状态，现在的状态是{{ powerStatus }}</h2>
+        <h2>远程控制开关，点击可切换开关状态</h2>
         <label class="switch" for="lightSwitch">
             <input type="checkbox" id="lightSwitch" {{ 'checked' if powerStatus=='on' else '' }}>
             <span class="slider"></span>
         </label>
+        <br>
         {% if powerStatus == 'on' %}
-        <img id="bulbImage" src="{{ url_for('static', filename='on.png') }}" alt="灯泡图片">
+        <img id="bulbImage" src="{{ url_for('static', filename='on.png') }}" alt="灯泡图片" width="50%" height="50%">
         {% else %}
-        <img id="bulbImage" src="{{ url_for('static', filename='off.png') }}" alt="灯泡图片">
+        <img id="bulbImage" src="{{ url_for('static', filename='off.png') }}" alt="灯泡图片" width="50%" height="50%">
         {% endif %}
-
-        <script>
-            // 获取lightSwitch元素和bulbImage元素
-            var lightSwitch = document.getElementById('lightSwitch');
-            var bulbImage = document.getElementById('bulbImage');
-
-            // 设置初始灯泡图片
-            var initialState = {{ powerStatus| tojson }};
-            bulbImage.src = initialState === 'on' ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
-
-            // 为lightSwitch添加change事件监听器
-            lightSwitch.addEventListener('change', function () {
-                var isOn = this.checked;
-                bulbImage.src = isOn ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
-            });
-        </script>
 
         <!-- 灯的属性设置 -->
         <form action="/ui/light" method="get">
             <!-- Checkbox -->
-            <label for="agreeCheckbox">我同意条款和条件：</label>
+            <label for="agreeCheckbox">同步设备状态：</label>
             <input type="checkbox" id="agreeCheckbox" name="agree">
             <br><br>
             <!-- Select (Option) -->
-            <label for="selectOption">选择一个选项：</label>
+            <label for="selectOption">选择一个颜色：</label>
             <select id="selectOption" name="option">
-                <option value="option1">选项 1</option>
-                <option value="option2">选项 2</option>
-                <option value="option3">选项 3</option>
+                <option value="option1">红色</option>
+                <option value="option2">绿色</option>
+                <option value="option3">蓝色</option>
+                <option value="option3">白色</option>
                 <!-- 根据需要添加更多选项 -->
             </select>
-            <br><br>
+            <br>
             <!-- Integer Input -->
             <label for="integerInput">输入一个整数：</label>
             <input type="number" id="integerInput" name="integerInput" min="1" max="255" step="10">
-            <br><br>
+            <br>
             <!-- Submit Button -->
             <input type="submit" value="提交">
+            <div id="statusMessage" style="color: grey;"></div> <!-- 提示信息显示区域 -->
+            <div id="messages"></div>
+            <div class="form-group">
+                <label for="message">消息内容：</label>
+                <input type="text" id="message" placeholder="输入消息内容">
+            </div>
         </form>
     </div>
+
+    
+    <script>
+
+        var statusMessageDiv = document.getElementById('statusMessage'); // 用于显示状态信息的元素
+        // 获取lightSwitch元素和bulbImage元素
+        var lightSwitch = document.getElementById('lightSwitch');
+        var bulbImage = document.getElementById('bulbImage');
+
+        // 设置初始灯泡图片
+        var initialState = {{ powerStatus| tojson }};
+        bulbImage.src = initialState === 'on' ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
+
+        // 为lightSwitch添加change事件监听器
+        lightSwitch.addEventListener('change', function () {
+            var isOn = this.checked;
+            bulbImage.src = isOn ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
+
+            // 清除之前的状态信息
+            statusMessageDiv.textContent = "正在打开远程智能灯...";
+            statusMessageDiv.style.color = "grey";
+            // 调用API
+            fetch(isOn ? 'http://120.26.241.36:5000/api/on' : 'http://120.26.241.36:5000/api/off')
+                .then(response => response.json()) // 解析JSON响应
+                .then(data => {
+                    console.log(data); // 打印JSON数据到控制台
+                    // 这里可以添加更多的逻辑来处理返回的数据
+                    displayJSON(data); // 假设这是显示JSON数据的函数
+                })
+                .catch(error => {
+                    console.error('Error:', error); // 打印错误信息到控制台
+                });
+        });
+
+        // 显示JSON数据的函数
+        function displayJSON(json) {
+            var jsonText = JSON.stringify(json, null, 4); // 格式化JSON字符串
+
+            // var pre = document.createElement('pre');
+            // pre.textContent = jsonText;
+            // document.body.appendChild(pre);
+
+            console.log("成功打开远程智能灯！返回状态：");
+            statusMessageDiv.textContent = "成功打开远程智能灯！返回状态：" + jsonText;
+            statusMessageDiv.style.color = "green";
+
+            var messagesDiv = document.getElementById('messages');
+            var p = document.createElement('p');
+            p.textContent = "收到API执行返回结果消息: " + jsonText + "来自主题: mytest ";
+            messagesDiv.appendChild(p);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight; // 自动滚动到底部
+
+        }
+    </script>
+
 </body>
 
 </html>

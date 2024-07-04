@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="8">
+    <!-- <meta http-equiv="refresh" content="8"> -->
     <title>智能灯用户界面</title>
     <style>
         .switch {
@@ -114,6 +114,7 @@
             <input type="checkbox" id="lightSwitch" {{ 'checked' if powerStatus=='on' else '' }}>
             <span class="slider"></span>
         </label>
+
         {% if powerStatus == 'on' %}
         <img id="bulbImage" src="{{ url_for('static', filename='on.png') }}" alt="灯泡图片">
         {% else %}
@@ -133,7 +134,27 @@
             lightSwitch.addEventListener('change', function () {
                 var isOn = this.checked;
                 bulbImage.src = isOn ? '{{ url_for("static", filename="on.png") }}' : '{{ url_for("static", filename="off.png") }}';
+
+                // 调用API
+                fetch(isOn ? 'http://120.26.241.36:5000/api/on' : 'http://120.26.241.36:5000/api/off')
+                    .then(response => response.json()) // 解析JSON响应
+                    .then(data => {
+                        console.log(data); // 打印JSON数据到控制台
+                        // 这里可以添加更多的逻辑来处理返回的数据
+                        displayJSON(data); // 假设这是显示JSON数据的函数
+                    })
+                    .catch(error => {
+                        console.error('Error:', error); // 打印错误信息到控制台
+                    });
             });
+
+            // 显示JSON数据的函数
+            function displayJSON(json) {
+                var pre = document.createElement('pre');
+                var jsonText = JSON.stringify(json, null, 4); // 格式化JSON字符串
+                pre.textContent = jsonText;
+                document.body.appendChild(pre);
+            }
         </script>
 
         <!-- 灯的属性设置 -->

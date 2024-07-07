@@ -1,7 +1,6 @@
-from flask import Flask, jsonify, request
-import paho.mqtt.client as mqtt
+from flask import Flask, jsonify, request, render_template,  make_response
 import subprocess
-from flask import  make_response
+import paho.mqtt.client as mqtt
 
 app = Flask(__name__)
 
@@ -69,16 +68,14 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     print(f"收到信息了 Received:  `{msg.payload.decode('utf-8')}`  from topic: `{msg.topic}`")
-    message_str = msg.payload
+    message_str = msg.payload.decode('utf-8')    #解码后，字节序列 变为 字符串 才可以比较
+
     if message_str == "poweron":
         status_info["status"]["powerStatus"] = "on"
-    elif message_str == "poweroff":
+        print("灯是打开状态的！")
+    if message_str == "poweroff":
         status_info["status"]["powerStatus"] = "off"
-    elif message_str == "status":
-        print(f"收到灯的状态数据了 Received:  `{userdata.payload}`")
-        #status_info["status"]["powerStatus"] = "on"
-        #status_info["status"]["brightness"] = 3
-        #status_info["status"]["color"] = 3
+        print("灯是关闭状态的！")
 
 # MQTT客户端
 mqtt_client = mqtt.Client()
@@ -91,17 +88,17 @@ mqtt_client.loop_start()
 
 # 定义UI路由
 @app.route('/ui/<name>')
-def ui_name():
+def ui_name(name):
     if name == "light":
-        return render_templates('light.html')
+        powerStatus = status_info["status"]["powerStatus"]
+        print(f"powerStatus:{powerStatus}")
+        return render_template('light.html', powerStatus=powerStatus)
     elif name == "mqtt":
-        return render_templates('mqtt.html')
-    elif name == "mqtt":
-        return render_templates('mqtt.html')
-    elif name == "TV.html":
-        return render_templates('TV.html')
+        return render_template('mqtt.html')
+    elif name == "TV":
+        return render_template('TV.html')
     else:
-        return render_templates('default.html')
+        return render_template('default.html')
 
 # RESTful API
 @app.route('/api/on', methods=['GET'])
@@ -109,14 +106,14 @@ def light_power_on():
     message = request.args.get('msg', 'on')
     print("publish message to MQTT: " + message)
     mqtt_client.publish(MQTT_TOPIC, message)
-    return jsonify({'status': 'success', 'message': 'light_power_on sent to MQTT'})
+    return jsonify({'status': 'success', 'message': 'light_power_on sent to MQTT', 'newImgSrc':'/static/on.png'})
 
 @app.route('/api/off', methods=['GET'])
 def light_power_off():
     message = request.args.get('msg', 'off')
     print("publish message to MQTT: " + message)
     mqtt_client.publish(MQTT_TOPIC, message)
-    return jsonify({'status': 'success', 'message': 'light_power_off sent to MQTT'})
+    return jsonify({'status': 'success', 'message': 'light_power_off sent to MQTT', 'newImgSrc':'/static/off.png'})
 
 @app.route('/api/message', methods=['POST'])
 def receive_message():

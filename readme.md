@@ -1,11 +1,7 @@
-Flasky
-======
 
-This repository contains the source code examples for the second edition of my O'Reilly book [Flask Web Development](http://www.flaskbook.com).
+一个中心三重防护
+“一个中心三重防护”是网络安全等级保护制度中的一个重要概念，它强调通过一个中心化的安全管理平台和三重防护措施来保护网络系统的安全。 这个概念包括以下几个核心部分：
 
-The commits and tags in this repository were carefully created to match the sequence in which concepts are presented in the book. Please read the section titled "How to Work with the Example Code" in the book's preface for instructions.
-
-For Readers of the First Edition of the Book
---------------------------------------------
-
-The code examples for the first edition of the book were moved to a different repository: [https://github.com/miguelgrinberg/flasky-first-edition](https://github.com/miguelgrinberg/flasky-first-edition).
+安全管理中心：这是网络安全等级保护对象安全防御体系的重要组成部分，负责对安全策略及安全计算环境、安全区域边界和安全通信网络上的安全机制实施统一管理。
+三重防护：包括安全计算环境、安全区域边界和安全通信网络。这些防护措施共同构成了一个多层次、全方位的安全防护体系。
+此外，安全管理中心要求在系统管理、安全管理、审计管理等三个方面实现集中管控，从而实现从被动防护到主动防护、从静态防护到动态防护、从单点防护到整体防护、从粗放防护到精准防护的转变。这种转变有助于提高网络安全防护的效率和效果，确保网络系统免受干扰、破坏或未经授权的访问，防止网络数据泄露或被窃取、篡改。

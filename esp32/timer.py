@@ -5,29 +5,32 @@
 D1指示灯间隔0.5s状态翻转
 '''
 
-#导入Pin模块
 from machine import Pin
 from machine import Timer
 
-#定义LED控制对象
-led1=Pin(15,Pin.OUT)
+class LedBlinkingController:
+    def __init__(self, led_pin):
+        # 初始化LED控制对象
+        self.led = Pin(led_pin, Pin.OUT)
+        self.led_state = 0  # 初始LED状态为关闭
 
+        # 初始化定时器，设置为周期性触发，并绑定中断函数
+        self.timer = Timer(0)
+        self.timer.init(period=500, mode=Timer.PERIODIC, callback=self.timer_irq)
+        self.led.value(self.led_state)  # 初始化LED状态
 
-#定义LED状态
-led1_state=0
+    def timer_irq(self, timer):
+        # 定时器中断函数，翻转LED状态
+        self.led_state = not self.led_state
+        self.led.value(self.led_state)
 
-#定时器0中断函数
-def time0_irq(time0):
-    global led1_state
-    led1_state=not led1_state
-    led1.value(led1_state)
+    def run(self):
+        # 程序主循环
+        while True:
+            pass  # 主循环中不需要执行任何操作，因为定时器中断会处理LED状态翻转
+
+# 程序入口
+if __name__ == "__main__":
+    controller = LedBlinkingController(15)  # 假设LED连接到GPIO 15
+    controller.run()
         
-#程序入口
-if __name__=="__main__":
-    led1.value(led1_state)  #初始化LED，熄灭状态
-    
-    time0=Timer(0)  #创建time0定时器对象
-    time0.init(period=500,mode=Timer.PERIODIC,callback=time0_irq)
-    
-    while True:
-        pass

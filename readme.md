@@ -11,3 +11,4 @@
 if __name__=="__main__":
     beep = Beep(25)  # 实例化 Beep 类，并指定连接蜂鸣器的引脚
     beep.beep_on()  # 启动蜂鸣器发声
+    是中

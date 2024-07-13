@@ -8,6 +8,8 @@ from machine import Pin
 import time
 import tm1637
 
+GPIO_CLK=16
+GPIO_DIO=17
 class SegmentDisplayController:
     def __init__(self, clk_pin, dio_pin):
         # 初始化数码管控制对象
@@ -34,5 +36,5 @@ class SegmentDisplayController:
 
 # 程序入口
 if __name__ == "__main__":
-    controller = SegmentDisplayController(16, 17)  # 假设CLK连接到GPIO 16，DIO连接到GPIO 17
+    controller = SegmentDisplayController(GPIO_CLK, GPIO_DIO)  # 假设CLK连接到GPIO 16，DIO连接到GPIO 17
     controller.run()

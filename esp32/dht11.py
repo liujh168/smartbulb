@@ -19,9 +19,11 @@ ds18b20=ds18x20.DS18X20(onewire.OneWire(Pin(GPIO_T)))
 if __name__=="__main__":
     roms = ds18b20.scan()  #扫描是否存在DS18B20设备
     print("DS18B20初始化成功！")
+    print(roms)
     while True:
         ds18b20.convert_temp()
         time.sleep(1)
         for rom in roms:
+            print(rom)
             print("DS18B20检测温度：%.2f°C" %ds18b20.read_temp(rom))
         

@@ -21,15 +21,24 @@ class RelayController:
         self.led_state = not self.led_state
         self.relay.value(self.led_state)
 
-    def run(self):
-        # 程序主循环
-        while True:
-            self.toggle_relay()
-            time.sleep(1)  # 间隔一定时间切换继电器状态
+    def on(self):
+        # 切换继电器状态
+        self.led_state = 1
+        self.relay.value(self.led_state)
+
+    def off(self):
+        # 切换继电器状态
+        self.led_state = 0
+        self.relay.value(self.led_state)
 
 # 程序入口
 if __name__ == "__main__":
     controller = RelayController(25)  # 假设继电器模块连接到GPIO 25
-    controller.run()
+    # 程序主循环
+    while True:
+        controller.toggle_relay()
+        time.sleep(1)  # 间隔一定时间切换继电器状态
+        controller.toggle_relay()
+        time.sleep(3)  # 间隔一定时间切换继电器状态
 
 

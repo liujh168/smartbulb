@@ -4,6 +4,8 @@ from simple import MQTTClient
 import json
 import time
 import network
+from timer import   TimerRelay
+from relay import RelayController
 
 #设备信息...
 status_info = {
@@ -42,8 +44,10 @@ VIOLET = (138, 43, 226)
 BLACK = (0, 0, 0)
 
 COLORS = (RED, ORANGE, YELLOW, GREEN, BLUE, INDIGO, VIOLET)
-
+relay = RelayController(25)
+ 
 def RGB_led_on():
+    relay.on()
     for color in COLORS:
         for i in range(rgb_num):
             rgb_led[i]=(color[0], color[1], color[2])
@@ -52,6 +56,7 @@ def RGB_led_on():
         time.sleep_ms(1000)
 
 def RGB_led_off():
+    relay.off()
     for i in range(rgb_num):
         rgb_led[i]=(0, 0, 0)
         rgb_led.write()
@@ -154,12 +159,14 @@ if __name__ == "__main__":
     msg = ""
     msg_count=0
 
+    #controller = TimerRelay(25)  # 假设LED连接到GPIO 15            
+
     if wifi_connect(CONFIG['ssid'], CONFIG['password']):
         try:
             SERVER="120.26.241.36"
             PORT=1083
             CLIENT_ID="ESP32_Client"  #客户端ID
-            TOPIC="mytest"  #TOPIC名称
+            TOPIC="mytest/#"  #TOPIC名称
             client = MQTTClient(CLIENT_ID, SERVER, PORT, "ljh", "56865686")  #建立客户端
             #client = MQTTClient(CONFIG['client_id'], CONFIG['mqtt_server'], CONFIG['mqtt_port'],
             #                    CONFIG['mqtt_broker_username'], CONFIG['mqtt_broker_password'], keepalive=60)
@@ -168,6 +175,7 @@ if __name__ == "__main__":
             client.subscribe(TOPIC)  #订阅主题
             client.publish(TOPIC, CONFIG['client_id'])
             print(f"MQTT Connected 、Subscribed and first publish message ->  {CONFIG['topic']}:{CONFIG['client_id']}")
+            
         except Exception as e:
             print(e)
             
@@ -181,8 +189,8 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(f"MQTT connection failed: {e}")
 
-            client.check_msg()
-            print(msg)
+            #client.check_msg()
+            #print(msg)
             time.sleep(3)  
                 
 
